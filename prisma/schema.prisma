@@ -1,0 +1,109 @@
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum Langue {
+  FR
+  EN
+  WO
+}
+
+enum TypeMedia {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+model Utilisateur {
+  id              Int          @id @default(autoincrement())
+  nom             String
+  email           String       @unique
+  languePreferee  Langue       @default(FR)
+  favoris         Favori[]
+  historique      Historique[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("utilisateurs")
+}
+
+model Collection {
+  id      Int      @id @default(autoincrement())
+  nomFr   String   @map("nom_fr")
+  nomEn   String   @map("nom_en")
+  nomWo   String   @map("nom_wo")
+  oeuvres Oeuvre[]
+
+  @@map("collections")
+}
+
+model Oeuvre {
+  id           Int          @id @default(autoincrement())
+  titre        String
+  qrCode       String       @unique @map("qr_code")
+  imageUrl     String       @map("image_url")
+  categorie    String
+  collectionId Int          @map("collection_id")
+  collection   Collection   @relation(fields: [collectionId], references: [id])
+  descriptions Description[]
+  medias       Media[]
+  favoris      Favori[]
+  historique   Historique[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@map("oeuvres")
+}
+
+model Description {
+  id       Int    @id @default(autoincrement())
+  oeuvreId Int    @map("oeuvre_id")
+  langue   Langue
+  texte    String @db.Text
+  audioUrl String @map("audio_url")
+  oeuvre   Oeuvre @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
+
+  @@unique([oeuvreId, langue])
+  @@map("descriptions")
+}
+
+model Media {
+  id       Int       @id @default(autoincrement())
+  oeuvreId Int       @map("oeuvre_id")
+  type     TypeMedia
+  url      String
+  oeuvre   Oeuvre    @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
+
+  @@map("medias")
+}
+
+model Favori {
+  id            Int         @id @default(autoincrement())
+  utilisateurId Int         @map("utilisateur_id")
+  oeuvreId      Int         @map("oeuvre_id")
+  dateAjout     DateTime    @default(now()) @map("date_ajout")
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  oeuvre        Oeuvre      @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
+
+  @@unique([utilisateurId, oeuvreId])
+  @@map("favoris")
+}
+
+model Historique {
+  id               Int         @id @default(autoincrement())
+  utilisateurId    Int         @map("utilisateur_id")
+  oeuvreId         Int         @map("oeuvre_id")
+  dateConsultation DateTime    @default(now()) @map("date_consultation")
+  utilisateur      Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  oeuvre           Oeuvre      @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
+
+  @@map("historique")
+}
