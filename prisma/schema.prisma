@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -23,36 +23,29 @@ enum TypeMedia {
 }
 
 model Utilisateur {
-  id              Int          @id @default(autoincrement())
+  id              String   @id @default(uuid())  // Sans @db.Uuid
   nom             String
-  email           String       @unique
-  languePreferee  Langue       @default(FR)
-  favoris         Favori[]
-  historique      Historique[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
+  email           String   @unique
+  motDePasse      String
+  languePreferee  Langue   @default(FR)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  favoris        Favori[]
+  historique     Historique[]
   @@map("utilisateurs")
 }
 
-model Collection {
-  id      Int      @id @default(autoincrement())
-  nomFr   String   @map("nom_fr")
-  nomEn   String   @map("nom_en")
-  nomWo   String   @map("nom_wo")
-  oeuvres Oeuvre[]
 
-  @@map("collections")
-}
 
 model Oeuvre {
-  id           Int          @id @default(autoincrement())
+  id           String          @id @default(uuid())
   titre        String
   qrCode       String       @unique @map("qr_code")
   imageUrl     String       @map("image_url")
   categorie    String
-  collectionId Int          @map("collection_id")
-  collection   Collection   @relation(fields: [collectionId], references: [id])
+  artiste      String
+  annee        Int
+  localisation  String
   descriptions Description[]
   medias       Media[]
   favoris      Favori[]
@@ -64,11 +57,10 @@ model Oeuvre {
 }
 
 model Description {
-  id       Int    @id @default(autoincrement())
-  oeuvreId Int    @map("oeuvre_id")
-  langue   Langue
+  id       String    @id @default(uuid())
+  oeuvreId String    @map("oeuvre_id")
+  langue   Langue    @default(FR)
   texte    String @db.Text
-  audioUrl String @map("audio_url")
   oeuvre   Oeuvre @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
 
   @@unique([oeuvreId, langue])
@@ -76,8 +68,8 @@ model Description {
 }
 
 model Media {
-  id       Int       @id @default(autoincrement())
-  oeuvreId Int       @map("oeuvre_id")
+  id       String       @id @default(uuid())
+  oeuvreId String       @map("oeuvre_id")
   type     TypeMedia
   url      String
   oeuvre   Oeuvre    @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
@@ -86,10 +78,10 @@ model Media {
 }
 
 model Favori {
-  id            Int         @id @default(autoincrement())
-  utilisateurId Int         @map("utilisateur_id")
-  oeuvreId      Int         @map("oeuvre_id")
-  dateAjout     DateTime    @default(now()) @map("date_ajout")
+  id            String         @id @default(uuid())
+  utilisateurId String         @map("utilisateur_id")
+  oeuvreId      String         @map("oeuvre_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
   utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
   oeuvre        Oeuvre      @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
 
@@ -98,11 +90,11 @@ model Favori {
 }
 
 model Historique {
-  id               Int         @id @default(autoincrement())
-  utilisateurId    Int         @map("utilisateur_id")
-  oeuvreId         Int         @map("oeuvre_id")
+  id               String         @id @default(uuid())
+  utilisateurId    String         @map("utilisateur_id")
+  oeuvreId         String         @map("oeuvre_id")
   dateConsultation DateTime    @default(now()) @map("date_consultation")
-  utilisateur      Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  utilisateur     Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
   oeuvre           Oeuvre      @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
 
   @@map("historique")
