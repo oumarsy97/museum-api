@@ -1,14 +1,12 @@
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 
 enum Langue {
   FR
@@ -22,44 +20,62 @@ enum TypeMedia {
   AUDIO
 }
 
+enum StatutEvenement {
+  A_VENIR
+  EN_COURS
+  TERMINE
+  ANNULE
+}
+
+enum TypeEvenement {
+  HACKATHON
+  EXPOSITION
+  CONFERENCE
+  ATELIER
+  VISITE_GUIDEE
+  SPECTACLE
+  AUTRE
+}
+
 model Utilisateur {
-  id              String   @id @default(uuid())  // Sans @db.Uuid
-  nom             String
-  email           String   @unique
-  motDePasse      String
-  languePreferee  Langue   @default(FR)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  favoris        Favori[]
-  historique     Historique[]
+  id                    String                 @id @default(uuid())
+  nom                   String
+  email                 String                 @unique
+  motDePasse            String
+  languePreferee        Langue                 @default(FR)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  favoris               Favori[]
+  historique            Historique[]
+  inscriptionsEvenement InscriptionEvenement[]
+  
   @@map("utilisateurs")
 }
 
-
-
 model Oeuvre {
-  id           String          @id @default(uuid())
-  titre        String
-  qrCode       String       @unique @map("qr_code")
-  imageUrl     String       @map("image_url")
-  categorie    String
-  artiste      String
-  annee        Int
+  id            String        @id @default(uuid())
+  titre         String
+  qrCode        String        @unique @map("qr_code")
+  imageUrl      String        @map("image_url")
+  categorie     String
+  artiste       String
+  annee         Int
   localisation  String
-  descriptions Description[]
-  medias       Media[]
-  favoris      Favori[]
-  historique   Historique[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  descriptions  Description[]
+  medias        Media[]
+  favoris       Favori[]
+  historique    Historique[]
+  evenements    Evenement[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@map("oeuvres")
 }
 
 model Description {
-  id       String    @id @default(uuid())
-  oeuvreId String    @map("oeuvre_id")
-  langue   Langue    @default(FR)
+  id       String @id @default(uuid())
+  oeuvreId String @map("oeuvre_id")
+  langue   Langue @default(FR)
   texte    String @db.Text
   oeuvre   Oeuvre @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
 
@@ -68,8 +84,8 @@ model Description {
 }
 
 model Media {
-  id       String       @id @default(uuid())
-  oeuvreId String       @map("oeuvre_id")
+  id       String    @id @default(uuid())
+  oeuvreId String    @map("oeuvre_id")
   type     TypeMedia
   url      String
   oeuvre   Oeuvre    @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
@@ -78,9 +94,9 @@ model Media {
 }
 
 model Favori {
-  id            String         @id @default(uuid())
-  utilisateurId String         @map("utilisateur_id")
-  oeuvreId      String         @map("oeuvre_id")
+  id            String      @id @default(uuid())
+  utilisateurId String      @map("utilisateur_id")
+  oeuvreId      String      @map("oeuvre_id")
   createdAt     DateTime    @default(now()) @map("created_at")
   utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
   oeuvre        Oeuvre      @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
@@ -90,12 +106,56 @@ model Favori {
 }
 
 model Historique {
-  id               String         @id @default(uuid())
-  utilisateurId    String         @map("utilisateur_id")
-  oeuvreId         String         @map("oeuvre_id")
+  id               String      @id @default(uuid())
+  utilisateurId    String      @map("utilisateur_id")
+  oeuvreId         String      @map("oeuvre_id")
   dateConsultation DateTime    @default(now()) @map("date_consultation")
-  utilisateur     Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  utilisateur      Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
   oeuvre           Oeuvre      @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
 
   @@map("historique")
+}
+
+model Evenement {
+  id              String                 @id @default(uuid())
+  titre           String
+  type            TypeEvenement
+  statut          StatutEvenement        @default(A_VENIR)
+  description     String                 @db.Text
+  dateDebut       DateTime               @map("date_debut")
+  dateFin         DateTime?              @map("date_fin")
+  heureDebut      String?                @map("heure_debut")
+  heureFin        String?                @map("heure_fin")
+  lieu            String
+  organisateur    String?
+  intervenant     String?
+  imageUrl        String                 @map("image_url")
+  capaciteMax     Int?                   @map("capacite_max")
+  prix            Decimal?               @db.Decimal(10, 2)
+  gratuit         Boolean                @default(true)
+  lienInscription String?                @map("lien_inscription")
+  lienBillet      String?                @map("lien_billet")
+  estPopulaire    Boolean                @default(false) @map("est_populaire")
+  tags            String[]               @default([])
+  oeuvreId        String?                @map("oeuvre_id")
+  oeuvre          Oeuvre?                @relation(fields: [oeuvreId], references: [id], onDelete: SetNull)
+  inscriptions    InscriptionEvenement[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@map("evenements")
+}
+
+model InscriptionEvenement {
+  id            String      @id @default(uuid())
+  evenementId   String      @map("evenement_id")
+  utilisateurId String      @map("utilisateur_id")
+  dateInscrit   DateTime    @default(now()) @map("date_inscrit")
+  statut        String      @default("confirme")
+  nombrePlaces  Int         @default(1) @map("nombre_places")
+  evenement     Evenement   @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@unique([evenementId, utilisateurId])
+  @@map("inscriptions_evenement")
 }

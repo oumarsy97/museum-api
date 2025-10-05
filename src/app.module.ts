@@ -7,10 +7,12 @@ import { PrismaModule } from './prisma/prisma.module';
 import { OeuvreModule } from './oeuvre/oeuvre.module';
 import { DescriptionModule } from './description/description.module';
 import { FavoriModule } from './favori/favori.module';
+import { QrCodeController } from './qrcode.controller';
+import { EvenementsModule } from './evenements/evenements.module';
 
 @Module({
-  imports: [UtilisateursModule, AuthModule, PrismaModule, OeuvreModule, DescriptionModule, FavoriModule],
-  controllers: [AppController],
+  imports: [UtilisateursModule, AuthModule, PrismaModule, OeuvreModule, DescriptionModule, FavoriModule, EvenementsModule],
+  controllers: [AppController, QrCodeController],
   providers: [AppService],
 })
 export class AppModule {}

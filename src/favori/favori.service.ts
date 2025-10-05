@@ -6,14 +6,35 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class FavoriService {
   constructor(private prisma: PrismaService) {}
-  create(createFavoriDto: CreateFavoriDto) {
-    return this.prisma.favori.create({
-      data: {
-        utilisateurId: createFavoriDto.utilisateurId ?? '',
-        oeuvreId: createFavoriDto.oeuvreId,
-        createdAt: createFavoriDto.createdAt ?? new Date(),
+  async create(createFavoriDto: CreateFavoriDto) {
+    //verifier si la favori existe de le supprimer
+    const favori = await this.prisma.favori.findUnique({
+      where: {
+        utilisateurId_oeuvreId: {
+          oeuvreId: createFavoriDto.oeuvreId,
+          utilisateurId: createFavoriDto.utilisateurId,
+        },
       },
-    });
+    })
+    if ( favori) {
+      return this.prisma.favori.delete({
+        where: {
+          utilisateurId_oeuvreId: {
+            oeuvreId: createFavoriDto.oeuvreId,
+            utilisateurId: createFavoriDto.utilisateurId,
+          }
+        },
+      });
+      return null;
+    } else {
+      return this.prisma.favori.create({
+        data: {
+          utilisateurId: createFavoriDto.utilisateurId,
+          oeuvreId: createFavoriDto.oeuvreId,
+          createdAt: createFavoriDto.createdAt,
+        },
+      });
+    }
 
   }
 

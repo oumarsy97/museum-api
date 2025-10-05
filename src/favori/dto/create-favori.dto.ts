@@ -9,7 +9,7 @@ export class CreateFavoriDto {
   })
   @IsOptional()
   @IsString()
-  utilisateurId?: string;
+  utilisateurId: string;
 
   @ApiProperty({ 
     description: 'ID de l\'oeuvre à ajouter aux favoris',
