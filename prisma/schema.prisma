@@ -87,6 +87,7 @@ model Media {
   id       String    @id @default(uuid())
   oeuvreId String    @map("oeuvre_id")
   type     TypeMedia
+  langue   Langue    @default(FR)
   url      String
   oeuvre   Oeuvre    @relation(fields: [oeuvreId], references: [id], onDelete: Cascade)
 
