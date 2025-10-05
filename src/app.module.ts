@@ -9,9 +9,10 @@ import { DescriptionModule } from './description/description.module';
 import { FavoriModule } from './favori/favori.module';
 import { QrCodeController } from './qrcode.controller';
 import { EvenementsModule } from './evenements/evenements.module';
+import { CollectionModule } from './collection/collection.module';
 
 @Module({
-  imports: [UtilisateursModule, AuthModule, PrismaModule, OeuvreModule, DescriptionModule, FavoriModule, EvenementsModule],
+  imports: [UtilisateursModule, AuthModule, PrismaModule, OeuvreModule, DescriptionModule, FavoriModule, EvenementsModule, CollectionModule],
   controllers: [AppController, QrCodeController],
   providers: [AppService],
 })

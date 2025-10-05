@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   Utilisateur as PrismaUtilisateur,
   Langue,
+  ROLE,
 } from '../../../generated/prisma';
 import { Exclude } from 'class-transformer';
 
@@ -15,6 +16,9 @@ export class UtilisateurEntity implements PrismaUtilisateur {
 
   @ApiProperty({ example: 'jean.dupont@example.com' })
   email: string;
+
+  @ApiProperty( { enum: ROLE, example: 'ADMIN' })
+  role: ROLE;
 
   @Exclude()
   motDePasse: string;
